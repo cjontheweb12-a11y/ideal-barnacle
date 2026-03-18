@@ -1,0 +1,135 @@
+document.addEventListener('DOMContentLoaded', () => {
+  const methodSelect = document.getElementById('method');
+  const linkInputDiv = document.getElementById('link-input');
+  const accountInputDiv = document.getElementById('account-input');
+  const boostBtn = document.getElementById('boost-btn');
+  const statusDiv = document.getElementById('status');
+  const progressBar = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+  const themeToggle = document.getElementById('theme-toggle');
+  const tabs = document.querySelectorAll('.tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+  const saveSettingsBtn = document.getElementById('save-settings-btn');
+  const loadSettingsBtn = document.getElementById('load-settings-btn');
+
+  // Theme toggle
+  themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-theme');
+    document.body.classList.toggle('light-theme');
+    themeToggle.textContent = document.body.classList.contains('dark-theme') ? 'Light Mode' : 'Dark Mode';
+  });
+
+  // Tab switching
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.getAttribute('data-tab');
+      tabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(content => content.classList.add('hidden'));
+      tab.classList.add('active');
+      document.getElementById(`${targetTab}-tab`).classList.remove('hidden');
+    });
+  });
+
+  // Toggle input fields based on method
+  methodSelect.addEventListener('change', () => {
+    if (methodSelect.value === 'link') {
+      linkInputDiv.classList.remove('hidden');
+      accountInputDiv.classList.add('hidden');
+    } else {
+      linkInputDiv.classList.add('hidden');
+      accountInputDiv.classList.remove('hidden');
+    }
+  });
+
+  // Save settings
+  saveSettingsBtn.addEventListener('click', () => {
+    const settings = {
+      delay: document.getElementById('delay').value,
+      retries: document.getElementById('retries').value
+    };
+    chrome.storage.sync.set({ settings }, () => {
+      statusDiv.textContent = 'Settings saved successfully!';
+    });
+  });
+
+  // Load settings
+  loadSettingsBtn.addEventListener('click', () => {
+    chrome.storage.sync.get('settings', (data) => {
+      if (data.settings) {
+        document.getElementById('delay').value = data.settings.delay || 1000;
+        document.getElementById('retries').value = data.settings.retries || 3;
+        statusDiv.textContent = 'Settings loaded!';
+      } else {
+        statusDiv.textContent = 'No saved settings found.';
+      }
+    });
+  });
+
+  // Handle boost button click
+  boostBtn.addEventListener('click', () => {
+    const method = methodSelect.value;
+    const boostType = document.getElementById('boost-type').value;
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const delay = parseInt(document.getElementById('delay').value);
+    const retries = parseInt(document.getElementById('retries').value);
+
+    if (!quantity || quantity <= 0) {
+      statusDiv.textContent = 'Please enter a valid quantity.';
+      return;
+    }
+
+    let data = {
+      method: method,
+      boostType: boostType,
+      quantity: quantity,
+      delay: delay,
+      retries: retries
+    };
+
+    if (method === 'link') {
+      const projectLink = document.getElementById('project-link').value;
+      if (!projectLink.includes('scratch.mit.edu/projects/')) {
+        statusDiv.textContent = 'Invalid Scratch project link.';
+        return;
+      }
+      data.projectLink = projectLink;
+    } else {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      if (!username || !password) {
+        statusDiv.textContent = 'Please enter both username and password.';
+        return;
+      }
+      data.username = username;
+      data.password = password;
+    }
+
+    statusDiv.textContent = 'Boosting in progress...';
+    boostBtn.disabled = true;
+    progressBar.style.setProperty('--progress', '0%');
+    progressText.textContent = '0%';
+
+    chrome.runtime.sendMessage(data, (response) => {
+      statusDiv.textContent = response.message || 'Error occurred. Check console for details.';
+      boostBtn.disabled = false;
+    });
+
+    // Listen for progress updates from background
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg.type === 'progress') {
+        const percent = Math.round((msg.current / msg.total) * 100);
+        progressBar.style.width = `${percent}%`;
+        progressText.textContent = `${percent}%`;
+        statusDiv.textContent = `Progress: ${msg.current}/${msg.total} ${boostType} added.`;
+      }
+    });
+  });
+
+  // Load saved settings on popup load
+  chrome.storage.sync.get('settings', (data) => {
+    if (data.settings) {
+      document.getElementById('delay').value = data.settings.delay || 1000;
+      document.getElementById('retries').value = data.settings.retries || 3;
+    }
+  });
+});
