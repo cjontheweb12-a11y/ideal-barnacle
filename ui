@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body class="light-theme">
+  <div class="container">
+    <div class="header">
+      <h1>Scratch Booster Pro</h1>
+      <button id="theme-toggle" class="theme-btn">Dark Mode</button>
+    </div>
+    <div class="tab-container">
+      <button class="tab active" data-tab="boost">Boost</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </div>
+    <div id="boost-tab" class="tab-content active">
+      <div class="option">
+        <label for="method">Method:</label>
+        <select id="method">
+          <option value="link">Project Link</option>
+          <option value="account">Account</option>
+        </select>
+      </div>
+      <div id="link-input" class="option">
+        <label for="project-link">Project Link:</label>
+        <input type="text" id="project-link" placeholder="https://scratch.mit.edu/projects/123456789/">
+      </div>
+      <div id="account-input" class="option hidden">
+        <label for="username">Username:</label>
+        <input type="text" id="username" placeholder="Scratch Username">
+        <label for="password">Password:</label>
+        <input type="password" id="password" placeholder="Scratch Password">
+      </div>
+      <div class="option">
+        <label for="boost-type">Boost Type:</label>
+        <select id="boost-type">
+          <option value="views">Views</option>
+          <option value="favorites">Favorites</option>
+          <option value="stars">Stars</option>
+          <option value="followers">Followers</option>
+        </select>
+      </div>
+      <div class="option">
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" min="1" placeholder="e.g., 500">
+      </div>
+      <div class="progress-container">
+        <div id="progress-bar" class="progress-bar"></div>
+        <span id="progress-text">0%</span>
+      </div>
+      <button id="boost-btn">Start Boost</button>
+      <div id="status" class="status"></div>
+    </div>
+    <div id="settings-tab" class="tab-content hidden">
+      <div class="option">
+        <label for="delay">Delay Between Requests (ms):</label>
+        <input type="number" id="delay" min="100" value="1000">
+      </div>
+      <div class="option">
+        <label for="retries">Max Retries on Failure:</label>
+        <input type="number" id="retries" min="0" value="3">
+      </div>
+      <div class="option">
+        <label for="save-settings">Save Settings:</label>
+        <button id="save-settings-btn">Save</button>
+        <button id="load-settings-btn">Load</button>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
